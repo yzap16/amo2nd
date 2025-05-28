@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  nginx:
+    container_name: amotask_nginx
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx:/etc/nginx
+      - ../amotask:/var/www/vhosts
+
+  php-fpm:
+    container_name: amotask_php_fpm
+    build:
+      context: .
+      dockerfile: ./php-fpm/Dockerfile
+    ports:
+      - 9000:9000
+    working_dir: /var/www/vhosts
+    volumes:
+      - ../amotask:/var/www/vhosts
+
+  redis:
+    container_name: amotask_redis
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf   
+
+volumes:
+  redis_data:
