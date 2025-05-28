@@ -7,6 +7,7 @@ use App\Exception\AmoCrmApiException;
 use App\Exception\ValidationException;
 use App\Form\ContactCreateFormType;
 use App\Service\ContactService;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,11 +16,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ContactController extends AbstractController
 {
-    private ContactService $contactService;
-    
-    public function __construct(ContactService $contactService) {
-        $this->contactService = $contactService;
-    }
+    public function __construct(
+        private ContactService $contactService,
+        private LoggerInterface $logger
+    ) { }
     
     #[Route('/contact/form', name: 'contact_form', methods: ['GET'])]
     public function showForm(): Response
@@ -49,6 +49,8 @@ class ContactController extends AbstractController
         }
         catch (ValidationException $e) {
             
+            $this->logError('Ошибка валидации', ['exception' => $e]);
+            
             return new JsonResponse([
                 'status' => 'validation_error',
                 'errors'  => $e->getErrors(),
@@ -60,6 +62,8 @@ class ContactController extends AbstractController
             
             $errorResponse = $e->getResponse();
             $errorDetails = $errorResponse->toArray(false);
+
+            $this->logError('Ошибка клиента', ['exception' => $e]);
             
             return $this->json([
                 'status' => 'server_error',
@@ -70,6 +74,8 @@ class ContactController extends AbstractController
         }
         catch (AmoCrmApiException $e) {
             
+            $this->logError('Ошибка API', ['exception' => $e]);
+            
             return $this->json([
                 'status' => 'api_error',
                 'errors' => $e->getMessage(),
@@ -79,6 +85,8 @@ class ContactController extends AbstractController
         }
         catch (\Throwable $e) {
 
+            $this->logError('Ошибка', ['exception' => $e]);
+            
             return $this->json([
                 'status' => 'server_error',
                 'errors' => $e->getMessage(),
@@ -86,5 +94,9 @@ class ContactController extends AbstractController
             ], 500);
             
         }
+    }
+
+    private function logError(string $message, array $errors) {
+        return $this->logger->error($message, $errors);
     }
 }
