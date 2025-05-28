@@ -4,6 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    redis_dsn: '%env(REDIS_DSN)%'
+    api.base_domain: '%env(AMOCRM_BASE_DOMAIN)%'
+    api.oauth.client_id: '%env(AMOCRM_CLIENT_ID)%'
+    api.oauth.client_secret: '%env(AMOCRM_CLIENT_SECRET)%'
+    api.oauth.redirect_uri: '%env(AMOCRM_REDIRECT_URI)%'
+    api.oauth.auth_code: '%env(AMOCRM_AUTH_CODE)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +28,71 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Service\AuthService:
+        bind:
+            $params: '@parameter_bag'
+    
+    App\Adapter\Interface\IAmoCrmContact:
+        class: App\Adapter\AmoCrmContactAdapter
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\Interface\IAmoCrmLead:
+        class: App\Adapter\AmoCrmLeadAdapter
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\Interface\IAmoCrmTask:
+        class: App\Adapter\AmoCrmTaskAdapter
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\Interface\IAmoCrmProduct:
+        class: App\Adapter\AmoCrmProductAdapter
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\Interface\IAmoCrmUser:
+        class: App\Adapter\AmoCrmUserAdapter
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\AmoCrmAuthAdapter:
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+            $client_id: '%api.oauth.client_id%'
+            $client_secret: '%api.oauth.client_secret%'
+            $redirect_uri: '%api.oauth.redirect_uri%'
+            $auth_code: '%api.oauth.auth_code%'
+    
+    App\Adapter\AmoCrmContactAdapter:
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\AmoCrmLeadAdapter:
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\AmoCrmProductAdapter:
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\AmoCrmTaskAdapter:
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
+
+    App\Adapter\AmoCrmUserAdapter:
+        arguments:
+            $httpClient: '@http_client'
+            $subdomain: '%api.base_domain%'
