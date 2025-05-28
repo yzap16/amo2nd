@@ -13,16 +13,11 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 final class AuthService
 {
     public function __construct(
-        private ParameterBagInterface $params,
         private IAmoCrmAuth $authAdapter,
         private HttpClientInterface $httpClient,
         private CacheItemPoolInterface $cache,
         private ParameterBagInterface $param
     ) {
-
-        $this->httpClient = HttpClient::create();
-        $this->params = $params;
-
         $redisConnection = RedisAdapter::createConnection($_ENV['REDIS_DSN']);
         $this->cache = new RedisAdapter($redisConnection);
 
