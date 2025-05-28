@@ -1,0 +1,173 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Создание контакта{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .contact-form {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        select.form-control {
+            height: 38px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .success-message {
+            color: #28a745;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #d4edda;
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="contact-form">
+        <h1 class="text-center">Создать новый контакт</h1>
+        
+        <div id="success-message" class="success-message">
+            Контакт успешно создан!
+        </div>
+
+        {{ form_start(form, {
+            'attr': {
+                'id': 'contact-form',
+                'class': 'needs-validation',
+                'novalidate': 'novalidate'
+            }
+        }) }}
+            <div class="form-group">
+                {{ form_label(form.firstName) }}
+                {{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
+                <div class="error-message" data-field="firstName"></div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.lastName) }}
+                {{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
+                <div class="error-message" data-field="lastName"></div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.age) }}
+                {{ form_widget(form.age, {'attr': {'class': 'form-control'}}) }}
+                <div class="error-message" data-field="age"></div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.gender) }}
+                {{ form_widget(form.gender, {'attr': {'class': 'form-control'}}) }}
+                <div class="error-message" data-field="gender"></div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.phone) }}
+                {{ form_widget(form.phone, {'attr': {'class': 'form-control'}}) }}
+                <div class="error-message" data-field="phone"></div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                <div class="error-message" data-field="email"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Создать контакт</button>
+        {{ form_end(form) }}
+    </div>
+
+    <script>
+    document.getElementById('contact-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.textContent = '';
+    });
+    
+    const formData = new FormData(this);
+    const jsonData = {};
+    
+    formData.forEach((value, key) => {
+        jsonData[key] = key === 'age' && value !== '' ? parseInt(value) : value;
+    });
+
+    try {
+        const response = await fetch('{{ path('contact_create') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            if (data.errors) {
+                Object.entries(data.errors).forEach(([field, message]) => {
+                    const errorElement = document.querySelector(`.error-message[data-field="${field}"]`);
+                    if (errorElement) {
+                        errorElement.textContent = message;
+                        const input = document.querySelector(`#contact-form [name="${field}"]`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                        }
+                    }
+                });
+            }
+            return;
+        }
+        
+        document.getElementById('success-message').style.display = 'block';
+        document.getElementById('contact-form').reset();
+        
+        setTimeout(() => {
+            document.getElementById('success-message').style.display = 'none';
+        }, 5000);
+        
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при отправке формы');
+    }
+});
+</script>
+{% endblock %}
