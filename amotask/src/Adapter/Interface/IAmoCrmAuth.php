@@ -4,7 +4,7 @@ namespace App\Adapter\Interface;
 
 interface IAmoCrmAuth {
 
-    public function getTokensByRefreshToken();
+    public function getTokensByRefreshToken(string $refreshToken);
 
     public function getTokensByAuthorizationCode();
     

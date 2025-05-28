@@ -29,10 +29,6 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    App\Service\AuthService:
-        bind:
-            $params: '@parameter_bag'
-    
     App\Adapter\Interface\IAmoCrmContact:
         class: App\Adapter\AmoCrmContactAdapter
         arguments:

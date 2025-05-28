@@ -5,18 +5,13 @@ namespace App\Service;
 
 use App\Adapter\Interface\IAmoCrmAuth;
 use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 final class AuthService
 {
     public function __construct(
         private IAmoCrmAuth $authAdapter,
-        private HttpClientInterface $httpClient,
-        private CacheItemPoolInterface $cache,
-        private ParameterBagInterface $param
+        private CacheItemPoolInterface $cache
     ) {
         $redisConnection = RedisAdapter::createConnection($_ENV['REDIS_DSN']);
         $this->cache = new RedisAdapter($redisConnection);
