@@ -23,7 +23,7 @@ final class ContactService
         private ValidatorInterface $validator
     ) { }
 
-    public function create(ContactCreateDTO $contactCreateDTO) {
+    public function create(ContactCreateDTO $contactCreateDTO): void {
 
         $this->contactAdapter->setAccessToken($this->authService->getAccessToken());
 
@@ -128,7 +128,7 @@ final class ContactService
 
     }
 
-    private function addNote(int $contactId, int $duplicateId) {
+    private function addNote(int $contactId, int $duplicateId): void {
         
         $response = $this->contactAdapter->addNote($contactId, $duplicateId);
 
@@ -146,13 +146,15 @@ final class ContactService
         if ($response->getStatusCode() === 204) {
             return false;
         }
-        
-        if ($response->toArray()) {
+
+        if ($response->getStatusCode() === 200) {
             return $response->toArray()['_embedded']['contacts'][0]['id'];
+        } else {
+            throw new AmoCrmApiException($response->getContent(false));
         }
     }
 
-    private function getAgeAndGenderIds() {
+    private function getAgeAndGenderIds(): array {
 
         $ageFieldId = null;
         $genderFieldId = null;

@@ -15,7 +15,7 @@ final class UserService
         private IAmoCrmUser $userAdapter
     ) { }
 
-    public function getRandomUser() {
+    public function getRandomUser(): array {
 
         $this->userAdapter->setAccessToken($this->authService->getAccessToken());
 

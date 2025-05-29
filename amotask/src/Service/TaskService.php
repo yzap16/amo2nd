@@ -19,7 +19,7 @@ final class TaskService
         private IAmoCrmTask $taskAdapter
     ) { }
 
-    public function create(int $leadId) {
+    public function create(int $leadId): void {
 
         $this->taskAdapter->setAccessToken($this->authService->getAccessToken());
         $randomUser = $this->userService->getRandomUser();
@@ -37,7 +37,7 @@ final class TaskService
 
     }
 
-    private function calculateDueDate($daysToAdd, $workStartHour = 9, $workEndHour = 18) {
+    private function calculateDueDate($daysToAdd, $workStartHour = 9, $workEndHour = 18): int {
         
         $now = new DateTime();
         $currentHour = (int)$now->format('H');

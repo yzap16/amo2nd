@@ -72,8 +72,7 @@ final class AuthService
         $this->cache->save($refreshToken);
     }
 
-    public function login() {
-
+    public function login(): void {
         $this->getInitialTokens();
     }
 }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -30,7 +31,6 @@ final class AuthController extends AbstractController
             ], 200);
         }
         catch (ClientException $e) {
-            
             $errorResponse = $e->getResponse();
             $errorDetails = $errorResponse->toArray(false);
 
@@ -44,8 +44,7 @@ final class AuthController extends AbstractController
 
         }
         catch (AmoCrmApiException $e) {
-            
-            $this->logError('Ошибка API', ['exception' => $e]);
+             $this->logError('Ошибка API', ['exception' => $e]);
             
             return $this->json([
                 'status' => 'api_error',
@@ -55,7 +54,6 @@ final class AuthController extends AbstractController
 
         }
         catch (\Throwable $e) {
-
             $this->logError('Ошибка', ['exception' => $e]);
             
             return $this->json([
@@ -67,7 +65,7 @@ final class AuthController extends AbstractController
         }
     }
 
-    private function logError(string $message, array $errors) {
-        return $this->logger->error($message, $errors);
+    private function logError(string $message, array $errors): void {
+        $this->logger->error($message, $errors);
     }
 }

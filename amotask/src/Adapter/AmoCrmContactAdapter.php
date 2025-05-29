@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Adapter;
 
 use App\Adapter\Interface\IAmoCrmContact;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class AmoCrmContactAdapter implements IAmoCrmContact
 {
@@ -14,7 +16,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
         private string $subdomain
     ) {}
 
-    public function createAmoCrmContact(array $contactData)
+    public function createAmoCrmContact(array $contactData): ResponseInterface
     {
         return $this->httpClient->request(
             'POST',
@@ -34,7 +36,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
         $this->accessToken = $accessToken;
     }
 
-    public function findDuplicate(string $phone)
+    public function findDuplicate(string $phone): ResponseInterface
     {
         return $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/contacts?query={$phone}", [
             'headers' => [
@@ -44,7 +46,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
         ]);
     }
 
-    public function addNote(int $contactId, int $duplicateId) {
+    public function addNote(int $contactId, int $duplicateId): ResponseInterface {
 
         return $this->httpClient->request(
             'POST',
@@ -67,7 +69,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
 
     }
 
-    public function getCustomFields()
+    public function getCustomFields(): ResponseInterface
     {
         return $this->httpClient->request(
             'GET',
@@ -81,7 +83,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
         );
     }
 
-    public function addAgeCustomField()
+    public function addAgeCustomField(): ResponseInterface
     {
         return $this->httpClient->request(
             'POST',
@@ -98,7 +100,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
             ]);
     }
 
-    public function addGenderCustomField()
+    public function addGenderCustomField(): ResponseInterface
     {
         return $this->httpClient->request(
             'POST',

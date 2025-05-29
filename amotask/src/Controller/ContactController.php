@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -37,7 +38,6 @@ class ContactController extends AbstractController
     ): JsonResponse {
         
         try {
-
             $contactCreateDTO = $this->contactService->getData(json_decode($request->getContent(), true));
             $this->contactService->validateData($contactCreateDTO);
             $contact = $this->contactService->create($contactCreateDTO);
@@ -48,7 +48,6 @@ class ContactController extends AbstractController
             ], 201);
         }
         catch (ValidationException $e) {
-            
             $this->logError('Ошибка валидации', ['exception' => $e]);
             
             return new JsonResponse([
@@ -59,8 +58,7 @@ class ContactController extends AbstractController
 
         }
         catch (ClientException $e) {
-            
-            $errorResponse = $e->getResponse();
+             $errorResponse = $e->getResponse();
             $errorDetails = $errorResponse->toArray(false);
 
             $this->logError('Ошибка клиента', ['exception' => $e]);
@@ -73,7 +71,6 @@ class ContactController extends AbstractController
 
         }
         catch (AmoCrmApiException $e) {
-            
             $this->logError('Ошибка API', ['exception' => $e]);
             
             return $this->json([
@@ -84,7 +81,6 @@ class ContactController extends AbstractController
 
         }
         catch (\Throwable $e) {
-
             $this->logError('Ошибка', ['exception' => $e]);
             
             return $this->json([
@@ -96,7 +92,7 @@ class ContactController extends AbstractController
         }
     }
 
-    private function logError(string $message, array $errors) {
-        return $this->logger->error($message, $errors);
+    private function logError(string $message, array $errors): void {
+        $this->logger->error($message, $errors);
     }
 }

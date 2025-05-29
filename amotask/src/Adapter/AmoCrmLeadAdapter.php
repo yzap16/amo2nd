@@ -1,10 +1,12 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Adapter;
 
 use App\Adapter\Interface\IAmoCrmLead;
 use App\Configuration\AmoCrmApiConfig;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class AmoCrmLeadAdapter implements IAmoCrmLead
 {
@@ -15,7 +17,7 @@ class AmoCrmLeadAdapter implements IAmoCrmLead
         private string $subdomain
     ) {}
 
-    public function createAmoCrmLead(int $contactId)
+    public function createAmoCrmLead(int $contactId): ResponseInterface
     {
         return $this->httpClient->request('POST',
             "https://{$this->subdomain}/api/v4/leads",

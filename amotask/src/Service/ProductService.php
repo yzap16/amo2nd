@@ -16,7 +16,7 @@ final class ProductService
         private IAmoCrmProduct $productAdapter
     ) { }
 
-    public function createProducts(int $leadId) {
+    public function createProducts(int $leadId): void {
 
         $httpClient = HttpClient::create();
         $subdomain = 'yurza';
@@ -36,7 +36,7 @@ final class ProductService
         }
     }
 
-    private function getProductsData() {
+    private function getProductsData(): array {
         return [
                 [
                     'name' => 'Стол раскладной',
@@ -59,7 +59,7 @@ final class ProductService
         ];
     }
 
-    private function linkProduct($createdProducts) {
+    private function linkProduct($createdProducts): array {
 
         foreach($createdProducts as $product) {
             $linksData[] = [

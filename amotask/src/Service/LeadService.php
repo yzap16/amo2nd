@@ -18,7 +18,7 @@ final class LeadService
         private IAmoCrmLead $leadAdapter
     ) { }
     
-    public function create(int $contactId) {
+    public function create(int $contactId): void {
 
         $this->leadAdapter->setAccessToken($this->authService->getAccessToken());
 

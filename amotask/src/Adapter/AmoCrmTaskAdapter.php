@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Adapter;
 
 use App\Adapter\Interface\IAmoCrmTask;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class AmoCrmTaskAdapter implements IAmoCrmTask
 {
@@ -14,7 +16,7 @@ class AmoCrmTaskAdapter implements IAmoCrmTask
         private string $subdomain
     ) {}
 
-    public function createAmoCrmTask(int $leadId, int $randomUser, int $completeTill)
+    public function createAmoCrmTask(int $leadId, int $randomUser, int $completeTill): ResponseInterface
     {
         $taskData = [
             [

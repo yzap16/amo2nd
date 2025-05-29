@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Adapter;
 
 use App\Adapter\Interface\IAmoCrmAuth;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class AmoCrmAuthAdapter implements IAmoCrmAuth
 {
@@ -18,9 +20,9 @@ class AmoCrmAuthAdapter implements IAmoCrmAuth
         private string $auth_code
     ) {}
 
-    public function getTokensByRefreshToken(string $refreshToken) {
+    public function getTokensByRefreshToken(string $refreshToken): ResponseInterface {
         
-        return $this->httpClient->request('POST', "https://{$this->subdomain}./oauth2/access_token", [
+        return $this->httpClient->request('POST', "https://{$this->subdomain}/oauth2/access_token", [
             'json' => [
                 'client_id' => $this->client_id,
                 'client_secret' => $this->client_secret,
@@ -31,9 +33,9 @@ class AmoCrmAuthAdapter implements IAmoCrmAuth
         ]);
     }
 
-    public function getTokensByAuthorizationCode() {
+    public function getTokensByAuthorizationCode(): ResponseInterface {
 
-        return $this->httpClient->request('POST', "https://{$this->subdomain}./oauth2/access_token", [
+        return $this->httpClient->request('POST', "https://{$this->subdomain}/oauth2/access_token", [
             'json' => [
                 'client_id' => $this->client_id,
                 'client_secret' => $this->client_secret,
