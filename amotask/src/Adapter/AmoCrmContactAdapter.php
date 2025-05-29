@@ -83,8 +83,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
         );
     }
 
-    public function addAgeCustomField(): ResponseInterface
-    {
+    public function addCustomFields(array $customFields): ResponseInterface {
         return $this->httpClient->request(
             'POST',
             "https://{$this->subdomain}/api/v4/contacts/custom_fields",
@@ -93,27 +92,7 @@ class AmoCrmContactAdapter implements IAmoCrmContact
                     'Authorization' => "Bearer {$this->accessToken}",
                     'Content-Type' => 'application/json',
                 ], 
-                'json' => [
-                    'name' => 'Возраст',
-                    'type' => 'text'
-                ],
-            ]);
-    }
-
-    public function addGenderCustomField(): ResponseInterface
-    {
-        return $this->httpClient->request(
-            'POST',
-            "https://{$this->subdomain}/api/v4/contacts/custom_fields",
-            [
-                'headers' => [
-                    'Authorization' => "Bearer {$this->accessToken}",
-                    'Content-Type' => 'application/json',
-                ], 
-                'json' => [
-                    'name' => 'Пол',
-                    'type' => 'text'
-                ],
+                'json' => $customFields,
             ]);
     }
 }

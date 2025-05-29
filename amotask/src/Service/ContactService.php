@@ -27,8 +27,8 @@ final class ContactService
 
         $this->contactAdapter->setAccessToken($this->authService->getAccessToken());
 
-        $data = $this->getAgeAndGenderIds();
-        $contactData = $this->getContactData($contactCreateDTO, $data['age_field_id'], $data['gender_field_id']);
+        $customFieldsIds = $this->getCustomFieldsIds();
+        $contactData = $this->getContactData($contactCreateDTO, $customFieldsIds);
 
         $duplicateContact = $this->findDuplicate($contactCreateDTO->phone);
 
@@ -80,7 +80,7 @@ final class ContactService
         }    
     }
 
-    private function getContactData(ContactCreateDTO $contactCreateDTO, ?int $ageFieldId = null, ?int $genderFieldId = null): array {
+    private function getContactData(ContactCreateDTO $contactCreateDTO, array $customFieldsIds): array {
 
         return [
             [
@@ -89,7 +89,7 @@ final class ContactService
                 'last_name' => $contactCreateDTO->lastName,
                 'custom_fields_values' => [
                     [
-                        'field_id' => 1005173,
+                        'field_id' => $customFieldsIds['phone_field_id'],
                         'values' => [
                             [
                                 'value' => $contactCreateDTO->phone,
@@ -98,7 +98,7 @@ final class ContactService
                         ],
                     ],
                     [
-                        'field_id' => 1005175,
+                        'field_id' => $customFieldsIds['email_field_id'],
                         'values' => [
                             [
                                 'value' => $contactCreateDTO->email,
@@ -107,7 +107,7 @@ final class ContactService
                         ],
                     ],
                     [
-                        'field_id' => $ageFieldId,
+                        'field_id' => $customFieldsIds['age_field_id'],
                         'values' => [
                             [
                                 'value' => $contactCreateDTO->age
@@ -115,7 +115,7 @@ final class ContactService
                         ],
                     ],
                     [
-                        'field_id' => $genderFieldId,
+                        'field_id' => $customFieldsIds['gender_field_id'],
                         'values' => [
                             [
                                 'value' => $contactCreateDTO->gender
@@ -154,48 +154,58 @@ final class ContactService
         }
     }
 
-    private function getAgeAndGenderIds(): array {
+    private function getCustomFieldsIds(): array {
 
-        $ageFieldId = null;
-        $genderFieldId = null;
+        $customFieldsIds = [];
 
         $response = $this->contactAdapter->getCustomFields();
         $customFields = $response->toArray()['_embedded']['custom_fields'] ?? [];
 
         foreach ($customFields as $field) {
+            if ($field['name'] === 'Телефон') {
+                $customFieldsIds['phone_field_id'] = $field['id'];
+            }
+            if ($field['name'] === 'Email') {
+                $customFieldsIds['email_field_id'] = $field['id'];
+            }
             if ($field['name'] === 'Возраст') {
-                $ageFieldId = $field['id'];
+                $customFieldsIds['age_field_id'] = $field['id'];
             }
             if ($field['name'] === 'Пол') {
-                $genderFieldId = $field['id'];
+                $customFieldsIds['gender_field_id'] = $field['id'];
             }
         }
 
-        if (!$ageFieldId) {
-            $response = $this->contactAdapter->addAgeCustomField();
-                  
-            if ($response->getStatusCode() === 200 || $response->getStatusCode() === 201) {
-                $ageFieldId = $response->toArray()['id'];
-            } else {
-                throw new amoCrmApiException(json_encode($content, JSON_UNESCAPED_UNICODE));
-            }       
+        $fields = [];
+                
+        if (!array_key_exists('age_field_id', $customFieldsIds)) {
+            $fields[] = [
+                'name' => 'Возраст',
+                'type' => 'text'
+            ];   
         }
 
-        if (!$genderFieldId) {
-            $response = $this->contactAdapter->addGenderCustomField();
-            
-            if ($response->getStatusCode() === 200 || $response->getStatusCode() === 201) {
-                $genderFieldId = $response->toArray()['id'];
-            } else {
-                throw new amoCrmApiException(json_encode($content, JSON_UNESCAPED_UNICODE));
+        if (!array_key_exists('gender_field_id', $customFieldsIds)) {
+            $fields[] = [
+                'name' => 'Пол',
+                'type' => 'text'
+            ];
+        }
+
+        if (is_array($fields) && !(count($fields) === 0)) {
+            $response = $this->contactAdapter->addCustomFields($fields);
+
+            foreach ($response->toArray()['_embedded']['custom_fields'] as $customField) {
+                if ($customField['name'] === 'Возраст') {
+                    $customFieldsIds['age_field_id'] = $customField['id'];
+                }
+                if ($customField['name'] === 'Пол') {
+                    $customFieldsIds['gender_field_id'] = $customField['id'];
+                }
             }
         }
 
-        return [
-            'age_field_id' => $ageFieldId,
-            'gender_field_id' => $genderFieldId
-        ];
-
+        return $customFieldsIds;
     }
 
 }
