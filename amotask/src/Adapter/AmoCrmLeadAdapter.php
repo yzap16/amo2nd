@@ -30,8 +30,8 @@ class AmoCrmLeadAdapter implements IAmoCrmLead
                     [
                         'name' => 'Новая сделка контакта '.$contactId,
                         'price' => 1256,
-                        'pipeline_id' => AmoCrmApiConfig::PIPELINE_ID,
-                        'status_id' => AmoCrmApiConfig::LEAD_STATUS_ID,
+                        'pipeline_id' => $this->getPipelineId()['pipeline_id'],
+                        'status_id' => $this->getPipelineId()['lead_status_id'],
                         '_embedded' => [
                             'contacts' => [
                                 [
@@ -43,7 +43,7 @@ class AmoCrmLeadAdapter implements IAmoCrmLead
                     ]
                 ],
             ]
-        );        
+        );
     }
 
     public function setAccessToken(string $accessToken): void {
@@ -51,5 +51,24 @@ class AmoCrmLeadAdapter implements IAmoCrmLead
         $this->accessToken = $accessToken;
     }
 
-    
+    private function getPipelineId(): array {
+
+        $response = $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/leads/pipelines",
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        if ($response->getStatusCode() === 200) {
+            return [
+                'pipeline_id' => $response->toArray()['_embedded']['pipelines'][0]['id'],
+                'lead_status_id' => $response->toArray()['_embedded']['pipelines'][0]['_embedded']['statuses'][2]['id']
+            ];
+        } else {
+            throw new AmoCrmApiException($response->getContent(false));
+        }   
+    }
 }
