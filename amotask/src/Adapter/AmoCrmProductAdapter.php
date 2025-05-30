@@ -11,17 +11,26 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 class AmoCrmProductAdapter implements IAmoCrmProduct
 {
     private string $accessToken;
+    private int $catalogId;
     
     public function __construct(
         private HttpClientInterface $httpClient,
         private string $subdomain
     ) {}
 
-    public function getProductsFromCrm(array $productsData): ResponseInterface {
+    public function getProductByName(string $productName): ResponseInterface {
 
-        $catalogId = AmoCrmApiConfig::CATALOG_ID;
-        
-        return $this->httpClient->request('POST', "https://{$this->subdomain}/api/v4/catalogs/{$catalogId}/elements", [
+        return $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/catalogs/{$this->catalogId}/elements?query={$productName}", [
+            'headers' => [
+                'Authorization' => "Bearer $this->accessToken",
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+    }
+
+    public function addProducts(array $productsData): ResponseInterface {
+
+        return $this->httpClient->request('POST', "https://{$this->subdomain}/api/v4/catalogs/{$this->catalogId}/elements", [
             'headers' => [
                 'Authorization' => "Bearer $this->accessToken",
                 'Content-Type' => 'application/json',
@@ -41,9 +50,34 @@ class AmoCrmProductAdapter implements IAmoCrmProduct
         ]);
 
     }
+
+    public function getCustomFields() {
+
+        return $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/catalogs/{$this->catalogId}/custom_fields", [
+            'headers' => [
+                'Authorization' => "Bearer $this->accessToken",
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+
+    }
+    
+    public function getCatalogs() {
+
+        return $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/catalogs", [
+            'headers' => [
+                'Authorization' => "Bearer $this->accessToken",
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+
+    }
     
     public function setAccessToken(string $accessToken): void {
-
         $this->accessToken = $accessToken;
+    }
+
+    public function setCatalogId(int $catalogId): void {
+        $this->catalogId = $catalogId;
     }
 }

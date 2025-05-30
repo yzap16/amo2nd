@@ -11,6 +11,8 @@ use Symfony\Component\HttpClient\HttpClient;
 
 final class ProductService
 {
+    private int $catalogId;
+    
     public function __construct(
         private AuthService $authService,
         private IAmoCrmProduct $productAdapter
@@ -18,48 +20,93 @@ final class ProductService
 
     public function createProducts(int $leadId): void {
 
-        $httpClient = HttpClient::create();
-        $subdomain = 'yurza';
-        $accessToken = $this->authService->getAccessToken();
-        
         $this->productAdapter->setAccessToken($this->authService->getAccessToken());
+        $this->catalogId = $this->getCatalogId();
+        $this->productAdapter->setCatalogId($this->catalogId);
                 
-        $productsData = $this->getProductsData();
-        $response = $this->productAdapter->getProductsFromCrm($productsData);
-        $linksData = $this->linkProduct($response->toArray()['_embedded']['elements']);
+        $productsData = $this->getProductQueryData();
+                
+        $newProducts = [];
+        if (is_array($productsData['newProducts']) && !(count($productsData['newProducts']) === 0)) {
+            $response = $this->productAdapter->addProducts($productsData['newProducts']);
+            if ($response->getStatusCode() === 200) {
+                $newProducts = $response->toArray()['_embedded']['elements'];
+            }
+            else {
+                throw new AmoCrmApiException($response->getContent(false));
+            }            
+        }
+
+        $linksData = $this->linkProduct(array_merge($newProducts, $productsData['existingProducts']));
            
         $linkResponse = $this->productAdapter->linkProductToLead($leadId, $linksData);
 
         if ($linkResponse->getStatusCode() !== 200) {
             $error = $linkResponse->toArray(false);
-            throw new \Exception("Ошибка привязки: " . print_r($error, true));
+            throw new AmoCrmApiException($linkResponse->getContent(false));
         }
     }
 
     private function getProductsData(): array {
+
+        $priceFieldId = $this->getPriceCustomFieldId();
+        
         return [
                 [
-                    'name' => 'Стол раскладной',
+                    'name' => 'Стул',
                     'custom_fields_values' => [
                         [
-                            'field_id' => 1006449,
-                            'values' => [['value' => 4500]]
+                            'field_id' => $priceFieldId,
+                            'values' => [['value' => 1500]]
                         ]
                     ]
                 ],
                 [
-                    'name' => 'Диван',
+                    'name' => 'Шкаф',
                     'custom_fields_values' => [
                         [
-                            'field_id' => 1006449,
-                            'values' => [['value' => 100000]]
+                            'field_id' => $priceFieldId,
+                            'values' => [['value' => 70000]]
                         ]
                     ]
                 ],
         ];
+    
+    }
+    
+    private function getProductQueryData(): array {
+        
+        $newProducts = $this->getProductsData();
+        
+        $existingProducts = [];
+        $keysToRemove = [];
+
+        foreach ($newProducts as $key=>$product) {
+            $response = $this->productAdapter->getProductByName($product['name']);
+            
+            if ($response->getStatusCode() === 200) {
+                $keysToRemove[] = $key;
+                $existingProducts[] = $response->toArray()['_embedded']['elements'][0];
+            }
+            else if ($response->getStatusCode() === 204) {
+                continue;    
+            }
+            else {
+                throw new AmoCrmApiException($response->getContent(false));
+            }
+        }
+        
+        foreach ($keysToRemove as $key) {
+            unset($newProducts[$key]);
+        }
+
+        return [
+            'newProducts' => $newProducts,
+            'existingProducts' => $existingProducts
+        ];
     }
 
-    private function linkProduct($createdProducts): array {
+    private function linkProduct(array $createdProducts): array {
 
         foreach($createdProducts as $product) {
             $linksData[] = [
@@ -67,7 +114,7 @@ final class ProductService
                 'to_entity_type' => 'catalog_elements',
                 'metadata' => [
                     'quantity' => 1,
-                    'catalog_id' => AmoCrmApiConfig::CATALOG_ID
+                    'catalog_id' => $this->catalogId
                 ]
             ];
         }
@@ -76,4 +123,35 @@ final class ProductService
 
     }
 
+    private function getPriceCustomFieldId(): int {
+
+        $response = $this->productAdapter->getCustomFields();
+
+        if ($response->getStatusCode() === 200) {
+            foreach ($response->toArray()['_embedded']['custom_fields'] as $custom_fields) {
+                if ($custom_fields['code'] === 'PRICE') {
+                    return $custom_fields['id']; 
+                }
+            }
+        }
+        else {
+            throw new AmoCrmApiException($response->getContent(false));
+        }
+    }
+    
+    private function getCatalogId(): int {
+        
+        $response = $this->productAdapter->getCatalogs();
+        
+        if ($response->getStatusCode() === 200) {
+            foreach ($response->toArray()['_embedded']['catalogs'] as $catalog) {
+                if ($catalog['type'] === 'products') {
+                    return $catalog['id']; 
+                }
+            }
+        }
+        else {
+            throw new AmoCrmApiException($response->getContent(false));
+        }
+    }
 }
