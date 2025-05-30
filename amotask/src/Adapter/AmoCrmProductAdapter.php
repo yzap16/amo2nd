@@ -50,7 +50,7 @@ class AmoCrmProductAdapter implements IAmoCrmProduct
 
     }
 
-    public function getCustomFields() {
+    public function getCustomFields(): ResponseInterface {
 
         return $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/catalogs/{$this->catalogId}/custom_fields", [
             'headers' => [
@@ -61,7 +61,7 @@ class AmoCrmProductAdapter implements IAmoCrmProduct
 
     }
     
-    public function getCatalogs() {
+    public function getCatalogs(): ResponseInterface {
 
         return $this->httpClient->request('GET', "https://{$this->subdomain}/api/v4/catalogs", [
             'headers' => [
