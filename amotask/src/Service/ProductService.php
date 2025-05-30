@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Adapter\Interface\IAmoCrmProduct;
-use App\Configuration\AmoCrmApiConfig;
 use App\Service\AuthService;
 use Symfony\Component\HttpClient\HttpClient;
 
